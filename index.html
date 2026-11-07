@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Jungle Spell Swing</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#14612a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Spell Swing">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fff1c9;--card:#fff;--ink:#2a2147;--g:#2fa84f;--o:#ff9a1f;--r:#e5484d;--p:#6c4cff;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#10291a;--card:#1d4a2c;--ink:#fff1c9}}
+:root[data-theme="dark"]{--bg:#10291a;--card:#1d4a2c;--ink:#fff1c9}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Press Start 2P','Courier New',monospace;display:flex;justify-content:center;min-height:100vh}
+#app{width:100%;max-width:980px;padding:12px}
+h1{font-size:1.2rem;line-height:1.5;text-align:center;margin:8px 0 4px}
+p.sub{text-align:center;font-size:.6rem;line-height:1.8;margin:0 0 14px}
+button{font:inherit;color:inherit;border:0;cursor:pointer;border-radius:10px;padding:12px;font-size:.75rem;box-shadow:0 4px 0 rgba(0,0,0,.35)}
+button:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.35)}
+button:focus-visible{outline:4px solid var(--p);outline-offset:2px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
+.grid button{background:var(--card);padding:16px 6px;font-size:.8rem}
+.grid button.done{background:#ffd54a;color:#2a2147}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px;font-size:.7rem}
+.top button{background:var(--card)}
+.play{display:grid;gap:12px}
+@media (min-width:720px){.play{grid-template-columns:1.4fr 1fr}}
+canvas{width:100%;height:auto;aspect-ratio:240/130;image-rendering:pixelated;border:4px solid #2a1a08;border-radius:8px;background:#14612a;display:block}
+.panel{display:flex;flex-direction:column;gap:14px;align-items:center;background:var(--card);border-radius:14px;padding:14px}
+.row{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.slot{width:40px;height:48px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;border-bottom:5px solid var(--p)}
+.slot.st{background:var(--g);color:#fff;border-radius:6px;border-bottom-color:#1b7a36}
+.tile{width:54px;height:58px;padding:0;font-size:1.4rem;background:var(--o);color:#2a2147}
+.tile.used{opacity:.2;pointer-events:none}
+.tile.no{animation:sh .4s;background:var(--r);color:#fff}
+@keyframes sh{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+@media (prefers-reduced-motion:reduce){.tile.no{animation:none}}
+.msg{min-height:3.6em;font-size:.65rem;line-height:1.8;text-align:center}
+.act{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.act button{background:var(--p);color:#fff}
+#nx{background:var(--g);color:#fff}
+[hidden]{display:none!important}
+.lives{font-size:1rem}
+</style></head><body><div id="app">
+<section id="home"><h1>🌴 Jungle Spell Swing 🪖</h1>
+<p class="sub">Pick a word. Spell the end of it to swing over the quicksand!</p>
+<div class="grid" id="grid"></div></section>
+<section id="game" hidden>
+<div class="top"><button onclick="goHome()">⬅ Words</button><span class="lives" id="lv"></span><span id="st">⭐ 0</span></div>
+<div class="play"><canvas id="cv" width="240" height="130" aria-label="An army man ready to swing on a rope over quicksand"></canvas>
+<div class="panel"><div class="row" id="wd" aria-live="polite"></div>
+<div class="row" id="tl"></div>
+<div class="msg" id="mg"></div>
+<div class="act"><button onclick="say(cur.w)">🔊 Hear</button><button onclick="peek()">👀 Peek</button><button id="nx" onclick="nextWord()" hidden>Next ➡</button></div></div></div>
+</section></div>
+<script>
+const WORDS=[["wa","tch"],["ba","tch"],["clu","tch"],["la","tch"],["ca","tch"],["hi","tch"],["cru","tch"],["pa","tch"],["i","tch"],["ma","tch"],["e","dge"],["he","dge"],["ju","dge"],["bri","dge"],["we","dge"],["ba","dge"],["ri","dge"],["lo","dge"],["gru","dge"],["fu","dge"]];
+const $=s=>document.querySelector(s);
+let stars=0,done={},G=null,cur=null;
+try{stars=+localStorage.getItem("jss_stars")||0;done=JSON.parse(localStorage.getItem("jss_done")||"{}")}catch(e){}
+function save(){try{localStorage.setItem("jss_stars",stars);localStorage.setItem("jss_done",JSON.stringify(done))}catch(e){}}
+const shuffle=a=>{a=[...a];for(let k=a.length-1;k>0;k--){const j=Math.random()*(k+1)|0;[a[k],a[j]]=[a[j],a[k]]}return a};
+/* speech */
+let voice=null;
+function pv(){try{const v=speechSynthesis.getVoices();voice=v.find(x=>/en[-_]US/i.test(x.lang))||v.find(x=>/^en/i.test(x.lang))||null}catch(e){}}
+try{pv();speechSynthesis.onvoiceschanged=pv}catch(e){}
+function speak(t,r){const u=new SpeechSynthesisUtterance(t);u.rate=r;u.lang="en-US";if(voice)u.voice=voice;speechSynthesis.speak(u)}
+function say(w){try{speechSynthesis.resume();if(speechSynthesis.speaking||speechSynthesis.pending){speechSynthesis.cancel();setTimeout(()=>speak(w,.8),80)}else speak(w,.8)}catch(e){}}
+/* home */
+function buildGrid(){$("#grid").innerHTML=WORDS.map((p,i)=>`<button class="${done[i]?"done":""}" onclick="start(${i})">${p[0]+p[1]}${done[i]?" ⭐":""}</button>`).join("")}
+function goHome(){G=null;$("#game").hidden=true;$("#home").hidden=false;buildGrid()}
+/* game */
+const W=240,H=130,GY=100,MH=22,PX=130,PY=4;
+const A=Math.atan2(34,GY-MH-PY),L=Math.hypot(34,GY-MH-PY);
+const ctx=$("#cv").getContext("2d");
+function start(i){$("#home").hidden=true;$("#game").hidden=false;cur={i,s:WORDS[i][0],e:WORDS[i][1],w:WORDS[i][0]+WORDS[i][1]};reset(true);say(cur.w)}
+function reset(first){const need=[...cur.e],n=Math.min(10,Math.max(5,need.length+4));
+const pool="abcdefghijklmnopqrstuvwxyz".split("").filter(c=>!need.includes(c));
+G={tiles:shuffle([...need,...shuffle(pool).slice(0,n-need.length)]),used:[],pos:0,wrong:0,st:"idle",t:0,th:-A};
+$("#nx").hidden=true;$("#mg").textContent=first?"Tap the letters that finish the word!":"Try again. You can do it!";render()}
+function render(){
+$("#wd").innerHTML=[...cur.s].map(c=>`<div class="slot st">${c}</div>`).join("")+[...cur.e].map((c,k)=>`<div class="slot">${k<G.pos?c:""}</div>`).join("");
+$("#tl").innerHTML=G.tiles.map((c,k)=>`<button class="tile ${G.used[k]?"used":""}" onclick="tap(${k},this)">${c}</button>`).join("");
+$("#lv").textContent="❤️".repeat(3-G.wrong)+"🖤".repeat(G.wrong);$("#st").textContent="⭐ "+stars}
+function tap(k,el){if(G.st!=="idle"||G.used[k])return;
+if(G.tiles[k]===cur.e[G.pos]){G.used[k]=true;G.pos++;render();
+if(G.pos===cur.e.length){G.st="swing";G.t=0;$("#mg").textContent="Hang on tight! 🌿"}}
+else{G.wrong++;el.classList.add("no");$("#mg").textContent="Not that one! Try another letter.";
+if(G.wrong>=3){G.st="sink";G.t=0;$("#mg").textContent="SPLASH! Quicksand! 😮"}setTimeout(render,450)}}
+function win(){const first=G.wrong===0;stars+=first?2:1;done[cur.i]=1;save();
+$("#mg").innerHTML=`🎉 You made it!<br>${cur.w}`;$("#nx").hidden=false;render();say(cur.w)}
+function nextWord(){start((cur.i+1)%WORDS.length)}
+function peek(){const m=$("#mg"),old=m.textContent;m.textContent=cur.w;setTimeout(()=>{if(m.textContent===cur.w)m.textContent=old},2000)}
+/* loop */
+let last=0,T=0;
+function frame(ts){const dt=Math.min(.05,(ts-last)/1000||0);last=ts;T+=dt;if(G){update(dt);draw()}requestAnimationFrame(frame)}
+function update(dt){G.t+=dt;
+if(G.st==="swing"){if(G.t>=1.5){G.st="cheer";G.t=0;win()}else G.th=-A*Math.cos(Math.PI*G.t/1.5)}
+else if(G.st==="cheer")G.th=A*Math.cos(G.t*2.5)*Math.exp(-G.t*.5);
+else if(G.st==="sink"){G.th=G.t<.7?-A*Math.cos(Math.PI/2*G.t/.7):0;if(G.t>2.8)reset(false)}}
+const R=(c,x,y,w,h)=>{ctx.fillStyle=c;ctx.fillRect(Math.round(x),Math.round(y),w,h)};
+function man(cx,top,pose){const x=Math.round(cx),y=Math.round(top),P=(c,dx,dy,w,h)=>R(c,x+dx,y+dy,w,h);
+const skin="#f1c27d",ol="#6b7d2a";
+if(pose==="rope"){P(ol,-4,0,1,9);P(ol,4,0,1,9);P(skin,-4,0,1,2);P(skin,4,0,1,2);P("#d9b26b",-4,0,9,1)}
+else{P(ol,-5,2,1,7);P(ol,5,2,1,7);P(skin,-5,1,1,2);P(skin,5,1,1,2)}
+P("#3a5a1c",-3,3,7,2);P("#3a5a1c",-2,2,5,1);P(skin,-2,5,5,4);P("#222",-1,6,1,1);P("#222",1,6,1,1);
+P(ol,-3,9,7,7);P("#4a3410",-3,13,7,1);P("#4f5f1d",-3,16,3,4);P("#4f5f1d",1,16,3,4);P("#111",-3,20,3,2);P("#111",1,20,3,2)}
+function draw(){
+R("#0d4a1c",0,0,W,H);R("#14612a",0,10,W,GY-10);
+for(const x of [34,70,176,212])R("#0b3d17",x,10,4,GY-10);
+for(const x of [14,222])R("#7a4a16",x,10,7,GY-10);
+for(let x=0;x<W;x+=10)R("#1f9a34",x,8+((x/10)%2)*3,10,5);
+R("#0a5a1b",0,0,W,9);
+R("#3fae48",0,GY,100,4);R("#b8812a",0,GY+4,100,H-GY-4);
+R("#3fae48",160,GY,80,4);R("#b8812a",160,GY+4,80,H-GY-4);
+R("#1a1005",100,GY,60,H-GY);
+R("#7a4a16",94,2,74,4);
+const st=G.st;let mx,my,pose="rope";
+if(st==="cheer"){mx=PX+L*Math.sin(A);my=GY-MH-Math.abs(Math.sin(G.t*7))*5;pose="cheer"}
+else if(st==="sink"&&G.t>.7){mx=PX;my=PY+L+(G.t-.7)*25;pose="cheer"}
+else{mx=PX+L*Math.sin(G.th);my=PY+L*Math.cos(G.th)}
+const ex=PX+L*Math.sin(G.th),ey=PY+L*Math.cos(G.th);
+for(let s=0;s<=60;s++)R("#d9b26b",PX+(ex-PX)*s/60,PY+(ey-PY)*s/60,1,1);
+man(mx,my,pose);
+R("#cfa94f",100,GY+10,60,H-GY-10);
+for(let k=0;k<4;k++)R("#a98531",102+((T*10+k*13)%36),GY+14+k*5,14,1);
+for(let k=0;k<3;k++)R("#e6cf85",108+k*20,GY+12+((T*8+k*7)%14),2,2);
+if(st==="sink"&&G.t>1.2)for(let k=0;k<3;k++)R("#e6cf85",126+k*4,GY+8-((T*20+k*5)%8),2,2)}
+requestAnimationFrame(frame);buildGrid();
+if("serviceWorker" in navigator&&location.protocol.startsWith("http")){try{navigator.serviceWorker.register("sw.js")}catch(e){}}
+</script></body></html>

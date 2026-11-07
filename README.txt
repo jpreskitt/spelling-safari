@@ -1,0 +1,15 @@
+JUNGLE SPELL SWING - web app package
+
+Quick start: double-click index.html to play in any browser (no install, no internet needed).
+
+To share it as an installable app:
+1. Upload this whole folder to any free static host (Netlify Drop, GitHub Pages, Cloudflare Pages).
+2. Open the https link on a phone or tablet.
+3. iPhone/iPad: Safari > Share > Add to Home Screen.
+   Android: Chrome menu > Install app.
+It then works offline.
+
+Change the words: open index.html, find the line starting "const WORDS=" and edit the pairs.
+Each pair is ["start shown","ending he spells"], e.g. ["ba","dge"] for badge.
+
+Tip: if the word sounds do not play, make sure the volume is up, silent mode is off, and use Safari or Chrome.
