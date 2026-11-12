@@ -48,7 +48,7 @@ canvas{width:100%;height:auto;aspect-ratio:240/130;image-rendering:pixelated;bor
 .lives{font-size:1rem}
 </style></head><body><div id="app">
 <section id="home"><h1>🌴 Jungle Spell Swing 🪖</h1>
-<p class="sub">Pick a word. Spell the end of it to swing over the quicksand!</p>
+<p class="sub">Pick a word. Spell the missing part to swing over the quicksand!</p>
 <div class="grid" id="grid"></div>
 <h1 style="margin-top:22px">🏆 Challenge Words</h1><p class="sub">Win and your hero does a backflip and changes color!</p>
 <div class="grid" id="cgrid"></div></section>
@@ -82,13 +82,13 @@ function goHome(){G=null;$("#game").hidden=true;$("#home").hidden=false;buildGri
 const W=240,H=130,GY=100,MH=22,PX=130,PY=4;
 const A=Math.atan2(34,GY-MH-PY),L=Math.hypot(34,GY-MH-PY);
 const ctx=$("#cv").getContext("2d");
-function start(i){$("#home").hidden=true;$("#game").hidden=false;cur={i,s:WORDS[i][0],e:WORDS[i][1],w:WORDS[i][0]+WORDS[i][1],ch:i>=CHS};reset(true);say(cur.w)}
+function start(i){$("#home").hidden=true;$("#game").hidden=false;const rv=i<CHS;cur={i,s:WORDS[i][rv?1:0],e:WORDS[i][rv?0:1],w:WORDS[i][0]+WORDS[i][1],ch:i>=CHS,rev:rv};reset(true);say(cur.w)}
 function reset(first){const need=[...cur.e],n=Math.min(10,Math.max(5,need.length+4));
 const pool="abcdefghijklmnopqrstuvwxyz".split("").filter(c=>!need.includes(c));
 G={tiles:shuffle([...need,...shuffle(pool).slice(0,n-need.length)]),used:[],pos:0,wrong:0,st:"idle",t:0,th:-A};
-$("#nx").hidden=true;$("#mg").textContent=first?"Tap the letters that finish the word!":"Try again. You can do it!";render()}
+$("#nx").hidden=true;$("#mg").textContent=first?(cur.rev?"Tap the letters that start the word!":"Tap the letters that finish the word!"):"Try again. You can do it!";render()}
 function render(){
-$("#wd").innerHTML=[...cur.s].map(c=>`<div class="slot st">${c}</div>`).join("")+[...cur.e].map((c,k)=>`<div class="slot">${k<G.pos?c:""}</div>`).join("");
+const S=[...cur.s].map(c=>`<div class="slot st">${c}</div>`).join(""),E=[...cur.e].map((c,k)=>`<div class="slot">${k<G.pos?c:""}</div>`).join("");$("#wd").innerHTML=cur.rev?E+S:S+E;
 $("#tl").innerHTML=G.tiles.map((c,k)=>`<button class="tile ${G.used[k]?"used":""}" onclick="tap(${k},this)">${c}</button>`).join("");
 $("#lv").textContent="❤️".repeat(3-G.wrong)+"🖤".repeat(G.wrong);$("#st").textContent="⭐ "+stars}
 function tap(k,el){if(G.st!=="idle"||G.used[k])return;

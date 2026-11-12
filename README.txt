@@ -11,6 +11,6 @@ It then works offline.
 
 Change the words: open index.html, find the line starting "const WORDS=" and edit the pairs.
 Words after the first 20 are the five challenge words (backflip + new color).
-Each pair is ["start shown","ending he spells"], e.g. ["ba","dge"] for badge.
+In the first 20 words he spells the first part (the tch or dge ending is shown). In the challenge words he spells the second part.
 
 Tip: if the word sounds do not play, make sure the volume is up, silent mode is off, and use Safari or Chrome.
