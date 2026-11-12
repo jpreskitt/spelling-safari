@@ -51,7 +51,8 @@ canvas{width:100%;height:auto;aspect-ratio:240/130;image-rendering:pixelated;bor
 <p class="sub">Pick a word. Spell the missing part to swing over the quicksand!</p>
 <div class="grid" id="grid"></div>
 <h1 style="margin-top:22px">🏆 Challenge Words</h1><p class="sub">Win and your hero does a backflip and changes color!</p>
-<div class="grid" id="cgrid"></div></section>
+<div class="grid" id="cgrid"></div>
+<div style="text-align:center;margin:22px 0 8px"><button id="rs" onclick="resetAll()" style="background:var(--card);font-size:.6rem">🔄 Reset all stars</button></div></section>
 <section id="game" hidden>
 <div class="top"><button onclick="goHome()">⬅ Words</button><span class="lives" id="lv"></span><span id="st">⭐ 0</span></div>
 <div class="play"><canvas id="cv" width="240" height="130" aria-label="An army man ready to swing on a rope over quicksand"></canvas>
@@ -77,6 +78,7 @@ function say(w){try{speechSynthesis.resume();if(speechSynthesis.speaking||speech
 /* home */
 function btn(i){const p=WORDS[i];return `<button class="${done[i]?"done":""}" onclick="start(${i})">${p[0]+p[1]}${done[i]?" ⭐":""}</button>`}
 function buildGrid(){$("#grid").innerHTML=WORDS.slice(0,CHS).map((p,i)=>btn(i)).join("");$("#cgrid").innerHTML=WORDS.slice(CHS).map((p,i)=>btn(i+CHS)).join("")}
+let rsT;function resetAll(){const b=$("#rs");if(!b.dataset.c){b.dataset.c=1;b.textContent="⚠️ Tap again to erase all stars";rsT=setTimeout(()=>{delete b.dataset.c;b.textContent="🔄 Reset all stars"},3500);return}clearTimeout(rsT);done={};stars=0;save();delete b.dataset.c;b.textContent="🔄 Reset all stars";buildGrid()}
 function goHome(){G=null;$("#game").hidden=true;$("#home").hidden=false;buildGrid()}
 /* game */
 const W=240,H=130,GY=100,MH=22,PX=130,PY=4;
