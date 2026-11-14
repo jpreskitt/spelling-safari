@@ -62,12 +62,12 @@ canvas{width:100%;height:auto;aspect-ratio:240/130;image-rendering:pixelated;bor
 <div class="act"><button onclick="say(cur.w)">🔊 Hear</button><button onclick="peek()">👀 Peek</button><button id="nx" onclick="nextWord()" hidden>Next ➡</button></div></div></div>
 </section></div>
 <script>
-const WORDS=[["wa","tch"],["ba","tch"],["clu","tch"],["la","tch"],["ca","tch"],["hi","tch"],["cru","tch"],["pa","tch"],["i","tch"],["ma","tch"],["e","dge"],["he","dge"],["ju","dge"],["bri","dge"],["we","dge"],["ba","dge"],["ri","dge"],["lo","dge"],["gru","dge"],["fu","dge"],["stit","ches"],["sketch","ing"],["butter","scotch"],["gad","get"],["acknow","ledge"]];
+const WORDS=[["i","nk"],["s","ink"],["th","ink"],["s","ank"],["t","ank"],["b","ank"],["pr","ank"],["d","unk"],["j","unk"],["tr","unk"],["sl","unk"],["ch","unk"],["h","onk"],["b","onk"],["fl","unk"],["sk","unk"],["bl","ank"],["d","onkey"],["t","inker"],["st","inky"],["thank","ful"],["wrin","kled"],["zon","ked"],["cra","nky"],["river","bank"]];
 const CHS=20;
 const $=s=>document.querySelector(s);
 let stars=0,done={},G=null,cur=null;
-try{stars=+localStorage.getItem("jss_stars")||0;done=JSON.parse(localStorage.getItem("jss_done2")||"{}")}catch(e){}
-function save(){try{localStorage.setItem("jss_stars",stars);localStorage.setItem("jss_done2",JSON.stringify(done))}catch(e){}}
+try{stars=+localStorage.getItem("jss_stars")||0;done=JSON.parse(localStorage.getItem("jss_done3")||"{}")}catch(e){}
+function save(){try{localStorage.setItem("jss_stars",stars);localStorage.setItem("jss_done3",JSON.stringify(done))}catch(e){}}
 const shuffle=a=>{a=[...a];for(let k=a.length-1;k>0;k--){const j=Math.random()*(k+1)|0;[a[k],a[j]]=[a[j],a[k]]}return a};
 /* speech */
 let voice=null;
